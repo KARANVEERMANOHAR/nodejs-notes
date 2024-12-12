@@ -664,4 +664,130 @@ app<span class="token punctuation">.</span><span class="token function">listen</
 <li>Centralized error handling is essential in larger applications.</li>
 </ul>
 <hr>
+<h1 id="async-behavior-and-handling-multiple-requests">Async Behavior, and Handling Multiple Requests</h1>
+<h2 id="callback-functions-in-node.js">1. Callback Functions in Node.js</h2>
+<p>A <strong>callback function</strong> in Node.js is a function passed as an argument to another function, executed after the completion of the asynchronous operation.</p>
+<h3 id="example-of-callback-function">Example of Callback Function</h3>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">const</span> fs <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fs'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+fs<span class="token punctuation">.</span><span class="token function">readFile</span><span class="token punctuation">(</span><span class="token string">'example.txt'</span><span class="token punctuation">,</span> <span class="token string">'utf8'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>err<span class="token punctuation">,</span> data<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>err<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">'Error reading file:'</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'File content:'</span><span class="token punctuation">,</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>In this example:</p>
+<ul>
+<li><code>fs.readFile</code> is asynchronous.</li>
+<li>It doesn’t block the main thread and executes the callback once the file is read.</li>
+</ul>
+<hr>
+<h2 id="io-operations-in-node.js">2. I/O Operations in Node.js</h2>
+<p><strong>I/O Operations</strong> (Input/Output operations) involve tasks that require interacting with external systems like:</p>
+<ul>
+<li>Reading/writing files.</li>
+<li>Querying a database.</li>
+<li>Making HTTP requests.</li>
+</ul>
+<h3 id="how-node.js-handles-io">How Node.js Handles I/O</h3>
+<p>Node.js delegates I/O operations to:</p>
+<ul>
+<li><strong>libuv thread pool</strong> (for file system operations).</li>
+<li>The operating system (for network requests).</li>
+</ul>
+<hr>
+<h2 id="managing-async-behavior">3. Managing Async Behavior</h2>
+<p>When a function depends on an external service or data (like reading a file), async behavior can be managed using:</p>
+<ol>
+<li><strong>Callbacks</strong></li>
+<li><strong>Promises</strong></li>
+<li><strong>Async/Await</strong></li>
+</ol>
+<h3 id="example-with-asyncawait">Example with Async/Await</h3>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">const</span> fs <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fs'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>promises<span class="token punctuation">;</span>
+
+<span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">processFile</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">try</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token keyword">await</span> fs<span class="token punctuation">.</span><span class="token function">readFile</span><span class="token punctuation">(</span><span class="token string">'example.txt'</span><span class="token punctuation">,</span> <span class="token string">'utf8'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'File content:'</span><span class="token punctuation">,</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">err</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">'Error:'</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token function">processFile</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="why-asyncawait-is-non-blocking">Why Async/Await is Non-Blocking</h3>
+<p>While <code>await</code> pauses the current function’s execution, the event loop remains free to handle other requests.</p>
+<hr>
+<h2 id="handling-multiple-requests-in-an-express-server">4. Handling Multiple Requests in an Express Server</h2>
+<p>Node.js uses a <strong>single-threaded event loop</strong> to handle multiple concurrent requests.</p>
+<h3 id="example-of-express-server">Example of Express Server</h3>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">const</span> express <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'express'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> fs <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fs'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>promises<span class="token punctuation">;</span>
+<span class="token keyword">const</span> app <span class="token operator">=</span> <span class="token function">express</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+app<span class="token punctuation">.</span><span class="token keyword">get</span><span class="token punctuation">(</span><span class="token string">'/data'</span><span class="token punctuation">,</span> <span class="token keyword">async</span> <span class="token punctuation">(</span>req<span class="token punctuation">,</span> res<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">try</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token keyword">await</span> fs<span class="token punctuation">.</span><span class="token function">readFile</span><span class="token punctuation">(</span><span class="token string">'example.txt'</span><span class="token punctuation">,</span> <span class="token string">'utf8'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    res<span class="token punctuation">.</span><span class="token function">send</span><span class="token punctuation">(</span><span class="token punctuation">{</span> message<span class="token punctuation">:</span> <span class="token string">'File read successfully'</span><span class="token punctuation">,</span> data <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">err</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    res<span class="token punctuation">.</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token number">500</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">send</span><span class="token punctuation">(</span><span class="token punctuation">{</span> error<span class="token punctuation">:</span> <span class="token string">'Error reading file'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+app<span class="token punctuation">.</span><span class="token function">listen</span><span class="token punctuation">(</span><span class="token number">3000</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Server running on port 3000'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="what-happens-with-multiple-requests">What Happens with Multiple Requests</h3>
+<ol>
+<li><strong>Request Arrival</strong>: Each request is added to the event queue.</li>
+<li><strong>Handling I/O</strong>: I/O tasks are delegated to the thread pool or OS, freeing the event loop.</li>
+<li><strong>Callback Execution</strong>: When the I/O is complete, the response is sent.</li>
+</ol>
+<hr>
+<h2 id="managing-cpu-bound-tasks">5. Managing CPU-Bound Tasks</h2>
+<p>For tasks that require significant computation, Node.js can offload work using:</p>
+<ol>
+<li><strong>Worker Threads</strong></li>
+<li><strong>Clustering</strong></li>
+<li><strong>Microservices</strong></li>
+</ol>
+<h3 id="worker-threads-example">Worker Threads Example</h3>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">const</span> <span class="token punctuation">{</span> Worker <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'worker_threads'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">new</span> <span class="token class-name">Worker</span><span class="token punctuation">(</span><span class="token string">'./worker.js'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> workerData<span class="token punctuation">:</span> <span class="token number">1000000</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="clustering-example">Clustering Example</h3>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">const</span> cluster <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'cluster'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> os <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'os'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span>cluster<span class="token punctuation">.</span>isMaster<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> numCPUs <span class="token operator">=</span> os<span class="token punctuation">.</span><span class="token function">cpus</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>length<span class="token punctuation">;</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">let</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> numCPUs<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    cluster<span class="token punctuation">.</span><span class="token function">fork</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> express <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'express'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> app <span class="token operator">=</span> <span class="token function">express</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  app<span class="token punctuation">.</span><span class="token keyword">get</span><span class="token punctuation">(</span><span class="token string">'/'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>req<span class="token punctuation">,</span> res<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+    res<span class="token punctuation">.</span><span class="token function">send</span><span class="token punctuation">(</span><span class="token template-string"><span class="token string">`Handled by worker </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>process<span class="token punctuation">.</span>pid<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  app<span class="token punctuation">.</span><span class="token function">listen</span><span class="token punctuation">(</span><span class="token number">3000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="microservices">Microservices</h3>
+<p>Complex tasks can be offloaded to separate services, improving scalability.</p>
+<hr>
+<h2 id="key-takeaways-5">Key Takeaways</h2>
+<ul>
+<li><strong>Event Loop</strong> ensures non-blocking I/O by delegating tasks to the thread pool or OS.</li>
+<li>Use <strong>Worker Threads</strong> or <strong>Clustering</strong> for CPU-bound tasks to avoid blocking the event loop.</li>
+<li>Node.js is designed for <strong>high-concurrency applications</strong>, making it efficient for handling many simultaneous I/O-bound requests.</li>
+</ul>
 
